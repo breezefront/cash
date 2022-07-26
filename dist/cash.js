@@ -56,7 +56,7 @@ var idRe = /^#(?:[\w-]|\\.|[^\x00-\xa0])*$/,
 
 function find(selector, context) {
   var isFragment = isDocumentFragment(context);
-  return !selector || !isFragment && !isDocument(context) && !isElement(context) ? [] : !isFragment && classRe.test(selector) ? context.getElementsByClassName(selector.slice(1)) : !isFragment && tagRe.test(selector) ? context.getElementsByTagName(selector) : context.querySelectorAll(selector);
+  return !selector || !isFragment && !isDocument(context) && !isElement(context) ? [] : !isFragment && classRe.test(selector) ? context.getElementsByClassName(selector.slice(1).replace(/\\/g, '')) : !isFragment && tagRe.test(selector) ? context.getElementsByTagName(selector) : context.querySelectorAll(selector);
 } // @require ./find.ts
 // @require ./variables.ts
 
@@ -71,7 +71,7 @@ function () {
 
     if (isString(selector)) {
       var ctx = (isCash(context) ? context[0] : context) || doc;
-      eles = idRe.test(selector) && 'getElementById' in ctx ? ctx.getElementById(selector.slice(1)) : htmlRe.test(selector) ? parseHTML(selector) : find(selector, ctx);
+      eles = idRe.test(selector) && 'getElementById' in ctx ? ctx.getElementById(selector.slice(1).replace(/\\/g, '')) : htmlRe.test(selector) ? parseHTML(selector) : find(selector, ctx);
       if (!eles) return;
     } else if (isFunction(selector)) {
       return this.ready(selector); //FIXME: `fn.ready` is not included in `core`, but it's actually a core functionality
@@ -464,8 +464,8 @@ function getPrefixedProp(prop, isVariable) {
 
   if (!prefixedProps[prop]) {
     var propCC = camelCase(prop),
-        propUC = "" + propCC[0].toUpperCase() + propCC.slice(1),
-        props = (propCC + " " + vendorsPrefixes.join(propUC + " ") + propUC).split(' ');
+        propUC = "".concat(propCC[0].toUpperCase()).concat(propCC.slice(1)),
+        props = "".concat(propCC, " ").concat(vendorsPrefixes.join("".concat(propUC, " "))).concat(propUC).split(' ');
     each(props, function (i, p) {
       if (p in style) {
         prefixedProps[prop] = p;
@@ -506,7 +506,7 @@ function getSuffixedValue(prop, value, isVariable) {
     isVariable = isCSSVariable(prop);
   }
 
-  return !isVariable && !numericProps[prop] && isNumeric(value) ? value + "px" : value;
+  return !isVariable && !numericProps[prop] && isNumeric(value) ? "".concat(value, "px") : value;
 }
 
 function css(prop, value) {
@@ -585,23 +585,23 @@ fn.data = data; // @optional ./data.ts
 
 function getDocumentDimension(doc, dimension) {
   var docEle = doc.documentElement;
-  return Math.max(doc.body["scroll" + dimension], docEle["scroll" + dimension], doc.body["offset" + dimension], docEle["offset" + dimension], docEle["client" + dimension]);
+  return Math.max(doc.body["scroll".concat(dimension)], docEle["scroll".concat(dimension)], doc.body["offset".concat(dimension)], docEle["offset".concat(dimension)], docEle["client".concat(dimension)]);
 } // @require css/helpers/compute_style_int.ts
 
 
 function getExtraSpace(ele, xAxis) {
-  return computeStyleInt(ele, "border" + (xAxis ? 'Left' : 'Top') + "Width") + computeStyleInt(ele, "padding" + (xAxis ? 'Left' : 'Top')) + computeStyleInt(ele, "padding" + (xAxis ? 'Right' : 'Bottom')) + computeStyleInt(ele, "border" + (xAxis ? 'Right' : 'Bottom') + "Width");
+  return computeStyleInt(ele, "border".concat(xAxis ? 'Left' : 'Top', "Width")) + computeStyleInt(ele, "padding".concat(xAxis ? 'Left' : 'Top')) + computeStyleInt(ele, "padding".concat(xAxis ? 'Right' : 'Bottom')) + computeStyleInt(ele, "border".concat(xAxis ? 'Right' : 'Bottom', "Width"));
 }
 
 each([true, false], function (i, outer) {
   each(['Width', 'Height'], function (i, prop) {
-    var name = "" + (outer ? 'outer' : 'inner') + prop;
+    var name = "".concat(outer ? 'outer' : 'inner').concat(prop);
 
     fn[name] = function (includeMargins) {
       if (!this[0]) return;
-      if (isWindow(this[0])) return outer ? this[0]["inner" + prop] : this[0].document.documentElement["client" + prop];
+      if (isWindow(this[0])) return outer ? this[0]["inner".concat(prop)] : this[0].document.documentElement["client".concat(prop)];
       if (isDocument(this[0])) return getDocumentDimension(this[0], prop);
-      return this[0]["" + (outer ? 'offset' : 'client') + prop] + (includeMargins && outer ? computeStyleInt(this[0], "margin" + (i ? 'Top' : 'Left')) + computeStyleInt(this[0], "margin" + (i ? 'Bottom' : 'Right')) : 0);
+      return this[0]["".concat(outer ? 'offset' : 'client').concat(prop)] + (includeMargins && outer ? computeStyleInt(this[0], "margin".concat(i ? 'Top' : 'Left')) + computeStyleInt(this[0], "margin".concat(i ? 'Bottom' : 'Right')) : 0);
     };
   });
 });
@@ -612,7 +612,7 @@ each(['Width', 'Height'], function (index, prop) {
     if (!this[0]) return isUndefined(value) ? undefined : this;
 
     if (!arguments.length) {
-      if (isWindow(this[0])) return this[0].document.documentElement["client" + prop];
+      if (isWindow(this[0])) return this[0].document.documentElement["client".concat(prop)];
       if (isDocument(this[0])) return getDocumentDimension(this[0], prop);
       return this[0].getBoundingClientRect()[propLC] - getExtraSpace(this[0], !index);
     }
@@ -816,7 +816,7 @@ function on(eventFullName, selector, data, callback, _one) {
       if (!isElement(ele) && !isDocument(ele) && !isWindow(ele)) return;
 
       var finalCallback = function finalCallback(event) {
-        if (event.target["___i" + event.type]) return event.stopImmediatePropagation(); // Ignoring native event in favor of the upcoming custom one
+        if (event.target["___i".concat(event.type)]) return event.stopImmediatePropagation(); // Ignoring native event in favor of the upcoming custom one
 
         if (event.namespace && !hasNamespaces(namespaces, event.namespace.split(eventsNamespacesSeparator))) return;
         if (!selector && (isEventFocus && (event.target !== ele || event.___ot === name) || isEventHover && event.relatedTarget && ele.contains(event.relatedTarget))) return;
@@ -913,11 +913,11 @@ fn.trigger = function (event, data) {
   var isEventFocus = (event.___ot in eventsFocus);
   return this.each(function (i, ele) {
     if (isEventFocus && isFunction(ele[event.___ot])) {
-      ele["___i" + event.type] = true; // Ensuring the native event is ignored
+      ele["___i".concat(event.type)] = true; // Ensuring the native event is ignored
 
       ele[event.___ot]();
 
-      ele["___i" + event.type] = false; // Ensuring the custom event is not ignored
+      ele["___i".concat(event.type)] = false; // Ensuring the custom event is not ignored
     }
 
     ele.dispatchEvent(event);
@@ -938,11 +938,10 @@ function getValue(ele) {
   return ele.value || '';
 }
 
-var queryEncodeSpaceRe = /%20/g,
-    queryEncodeCRLFRe = /\r?\n/g;
+var queryEncodeCRLFRe = /\r?\n/g;
 
 function queryEncode(prop, value) {
-  return "&" + encodeURIComponent(prop) + "=" + encodeURIComponent(value.replace(queryEncodeCRLFRe, '\r\n')).replace(queryEncodeSpaceRe, '+');
+  return "&".concat(encodeURIComponent(prop), "=").concat(encodeURIComponent(value.replace(queryEncodeCRLFRe, '\r\n')));
 }
 
 var skippableRe = /file|reset|submit|button|image/i,
@@ -1035,17 +1034,6 @@ fn.empty = function () {
     }
   });
 };
-
-function html(html) {
-  if (!arguments.length) return this[0] && this[0].innerHTML;
-  if (isUndefined(html)) return this;
-  return this.each(function (i, ele) {
-    if (!isElement(ele)) return;
-    ele.innerHTML = html;
-  });
-}
-
-fn.html = html;
 
 fn.remove = function (comparator) {
   filtered(this, comparator).detach().off();
@@ -1211,6 +1199,23 @@ fn.appendTo = function (selector) {
 fn.before = function () {
   return insertSelectors(arguments, this, false, true);
 };
+
+function html(html) {
+  if (!arguments.length) return this[0] && this[0].innerHTML;
+  if (isUndefined(html)) return this;
+  var hasScript = /<script/.test(html);
+  return this.each(function (i, ele) {
+    if (!isElement(ele)) return;
+
+    if (hasScript) {
+      cash(ele).empty().append(html);
+    } else {
+      ele.innerHTML = html;
+    }
+  });
+}
+
+fn.html = html;
 
 fn.insertAfter = function (selector) {
   return insertSelectors(arguments, this, true, false, false, false, false, true);

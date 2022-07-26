@@ -204,10 +204,6 @@ interface Cash {
     empty(): this;
 }
 interface Cash {
-    html(): string;
-    html(html: string): this;
-}
-interface Cash {
     remove(comparator?: Comparator): this;
 }
 interface Cash {
@@ -252,6 +248,10 @@ interface Cash {
 }
 interface Cash {
     before(...selectors: Selector[]): this;
+}
+interface Cash {
+    html(): string;
+    html(html: string): this;
 }
 interface Cash {
     insertAfter(selector: Selector): this;

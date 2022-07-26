@@ -96,7 +96,7 @@ function find ( selector: string, context: Ele ): ArrayLike<Element> {
   return !selector || ( !isFragment && !isDocument ( context ) && !isElement ( context ) )
            ? []
            : !isFragment && classRe.test ( selector )
-             ? context.getElementsByClassName ( selector.slice ( 1 ) )
+             ? context.getElementsByClassName ( selector.slice ( 1 ).replace ( /\\/g, '' ) )
              : !isFragment && tagRe.test ( selector )
                ? context.getElementsByTagName ( selector )
                : context.querySelectorAll ( selector );
@@ -122,7 +122,7 @@ class Cash {
       const ctx = ( isCash ( context ) ? context[0] : context ) || doc;
 
       eles = idRe.test ( selector ) && 'getElementById' in ctx
-                ? ( ctx as Document ).getElementById ( selector.slice ( 1 ) )
+                ? ( ctx as Document ).getElementById ( selector.slice ( 1 ).replace ( /\\/g, '' ) )
                 : htmlRe.test ( selector )
                   ? parseHTML ( selector )
                   : find ( selector, ctx );
@@ -1811,12 +1811,11 @@ function getValue ( ele: EleLoose ): string | string[] {
 }
 
 
-const queryEncodeSpaceRe = /%20/g,
-      queryEncodeCRLFRe = /\r?\n/g;
+const queryEncodeCRLFRe = /\r?\n/g;
 
 function queryEncode ( prop: string, value: string ): string {
 
-  return `&${encodeURIComponent ( prop )}=${encodeURIComponent ( value.replace ( queryEncodeCRLFRe, '\r\n' ) ).replace ( queryEncodeSpaceRe, '+' )}`;
+  return `&${encodeURIComponent ( prop )}=${encodeURIComponent ( value.replace ( queryEncodeCRLFRe, '\r\n' ) )}`;
 
 }
 
@@ -2039,36 +2038,6 @@ fn.empty = function ( this: Cash ) {
   });
 
 };
-
-
-// @require core/cash.ts
-// @require core/type_checking.ts
-// @require collection/each.ts
-
-interface Cash {
-  html (): string;
-  html ( html: string ): this;
-}
-
-function html ( this: Cash ): string;
-function html ( this: Cash, html: string ): Cash;
-function html ( this: Cash, html?: string ) {
-
-  if ( !arguments.length ) return this[0] && this[0].innerHTML;
-
-  if ( isUndefined ( html ) ) return this;
-
-  return this.each ( ( i, ele ) => {
-
-    if ( !isElement ( ele ) ) return;
-
-    ele.innerHTML = html;
-
-  });
-
-}
-
-fn.html = html;
 
 
 // @require core/cash.ts
@@ -2450,6 +2419,47 @@ fn.before = function ( this: Cash ) {
   return insertSelectors ( arguments, this, false, true );
 
 };
+
+
+// @require core/cash.ts
+// @require core/type_checking.ts
+// @require collection/each.ts
+// @require ./append.ts
+// @require ./empty.ts
+
+interface Cash {
+  html (): string;
+  html ( html: string ): this;
+}
+
+function html ( this: Cash ): string;
+function html ( this: Cash, html: string ): Cash;
+function html ( this: Cash, html?: string ) {
+
+  if ( !arguments.length ) return this[0] && this[0].innerHTML;
+
+  if ( isUndefined ( html ) ) return this;
+
+  const hasScript = /<script/.test ( html );
+
+  return this.each ( ( i, ele ) => {
+
+    if ( !isElement ( ele ) ) return;
+
+    if ( hasScript ) {
+
+      cash ( ele ).empty ().append ( html );
+
+    } else {
+
+      ele.innerHTML = html;
+
+    }
+
+  });
+}
+
+fn.html = html;
 
 
 // @require core/cash.ts

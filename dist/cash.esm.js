@@ -31,7 +31,7 @@ function find(selector, context) {
     return !selector || (!isFragment && !isDocument(context) && !isElement(context))
         ? []
         : !isFragment && classRe.test(selector)
-            ? context.getElementsByClassName(selector.slice(1))
+            ? context.getElementsByClassName(selector.slice(1).replace(/\\/g, ''))
             : !isFragment && tagRe.test(selector)
                 ? context.getElementsByTagName(selector)
                 : context.querySelectorAll(selector);
@@ -48,7 +48,7 @@ class Cash {
         if (isString(selector)) {
             const ctx = (isCash(context) ? context[0] : context) || doc;
             eles = idRe.test(selector) && 'getElementById' in ctx
-                ? ctx.getElementById(selector.slice(1))
+                ? ctx.getElementById(selector.slice(1).replace(/\\/g, ''))
                 : htmlRe.test(selector)
                     ? parseHTML(selector)
                     : find(selector, ctx);
@@ -762,9 +762,9 @@ function getValue(ele) {
         return pluck(filter.call(ele.options, option => option.selected && !option.disabled && !option.parentNode.disabled), 'value');
     return ele.value || '';
 }
-const queryEncodeSpaceRe = /%20/g, queryEncodeCRLFRe = /\r?\n/g;
+const queryEncodeCRLFRe = /\r?\n/g;
 function queryEncode(prop, value) {
-    return `&${encodeURIComponent(prop)}=${encodeURIComponent(value.replace(queryEncodeCRLFRe, '\r\n')).replace(queryEncodeSpaceRe, '+')}`;
+    return `&${encodeURIComponent(prop)}=${encodeURIComponent(value.replace(queryEncodeCRLFRe, '\r\n'))}`;
 }
 const skippableRe = /file|reset|submit|button|image/i, checkableRe = /radio|checkbox/i;
 fn.serialize = function () {
@@ -846,18 +846,6 @@ fn.empty = function () {
         }
     });
 };
-function html(html) {
-    if (!arguments.length)
-        return this[0] && this[0].innerHTML;
-    if (isUndefined(html))
-        return this;
-    return this.each((i, ele) => {
-        if (!isElement(ele))
-            return;
-        ele.innerHTML = html;
-    });
-}
-fn.html = html;
 fn.remove = function (comparator) {
     filtered(this, comparator).detach().off();
     return this;
@@ -992,6 +980,24 @@ fn.appendTo = function (selector) {
 fn.before = function () {
     return insertSelectors(arguments, this, false, true);
 };
+function html(html) {
+    if (!arguments.length)
+        return this[0] && this[0].innerHTML;
+    if (isUndefined(html))
+        return this;
+    const hasScript = /<script/.test(html);
+    return this.each((i, ele) => {
+        if (!isElement(ele))
+            return;
+        if (hasScript) {
+            cash(ele).empty().append(html);
+        }
+        else {
+            ele.innerHTML = html;
+        }
+    });
+}
+fn.html = html;
 fn.insertAfter = function (selector) {
     return insertSelectors(arguments, this, true, false, false, false, false, true);
 };
