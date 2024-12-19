@@ -66,7 +66,7 @@ describe ( 'Effects', { beforeEach: getFixtureInit ( fixture ) }, function () {
 
       ele.hide ().show ();
 
-      t.is ( ele[0].style.display, 'inline-block' );
+      t.is ( ele.css ( 'display' ), 'inline-block' );
 
     });
 

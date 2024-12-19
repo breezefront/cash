@@ -16,8 +16,7 @@ fn.toggle = function ( this: Cash, force?: boolean ) {
 
     if ( !isElement ( ele ) ) return;
 
-    const hidden = isHidden ( ele );
-    const show = isUndefined ( force ) ? hidden : force;
+    const show = isUndefined ( force ) ? isHidden ( ele ) : force;
 
     if ( show ) {
 
@@ -29,9 +28,9 @@ fn.toggle = function ( this: Cash, force?: boolean ) {
 
       }
 
-    } else if ( !hidden ) {
+    } else if ( ele.style.display !== 'none' ) {
 
-      ele[displayProperty] = computeStyle ( ele, 'display' );
+      ele[displayProperty] = ele.style.display;
 
       ele.style.display = 'none';
 
