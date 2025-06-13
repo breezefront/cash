@@ -83,6 +83,14 @@ describe ( 'Manipulation', { beforeEach: getFixtureInit ( fixture ) }, function 
 
     });
 
+    it ( 'inserts a text after', function ( t ) {
+
+      $('.parent .anchor').after('text');
+
+      t.is($('.parent').html().trim(), '<div class="anchor">content</div>text');
+
+    });
+
     it ( 'supports non-element nodes', function ( t ) {
 
       var ele = $('<div><span> dear</span>world</div>');
@@ -120,6 +128,14 @@ describe ( 'Manipulation', { beforeEach: getFixtureInit ( fixture ) }, function 
       t.is ( prev.length, 0 );
       t.is ( next.length, 3 );
       t.deepEqual ( $('.parent').children ().slice ( 1 ).get ().map ( ele2tagname ), ['A', 'B', 'C'] );
+
+    });
+
+    it ( 'appends text', function ( t ) {
+
+      $('.parent').append('text');
+
+      t.is($('.parent').html().trim(), '<div class=\"anchor\">content</div>  text');
 
     });
 
@@ -185,6 +201,14 @@ describe ( 'Manipulation', { beforeEach: getFixtureInit ( fixture ) }, function 
       t.is ( prev.length, 3 );
       t.is ( next.length, 0 );
       t.deepEqual ( $('.parent').children ().slice ( 0, 3 ).get ().map ( ele2tagname ), ['A', 'B', 'C'] );
+
+    });
+
+    it ( 'inserts a text before', function ( t ) {
+
+      $('.parent .anchor').before('text');
+
+      t.is($('.parent').html().trim(), 'text<div class=\"anchor\">content</div>');
 
     });
 
@@ -413,6 +437,14 @@ describe ( 'Manipulation', { beforeEach: getFixtureInit ( fixture ) }, function 
 
     });
 
+    it ( 'prepends a text', function ( t ) {
+
+      $('.parent').prepend('text');
+
+      t.is($('.parent').html().trim(), 'text    <div class=\"anchor\">content</div>');
+
+    });
+
     it ( 'supports non-element nodes', function ( t ) {
 
       var ele = $('<div>world</div>');
@@ -527,6 +559,14 @@ describe ( 'Manipulation', { beforeEach: getFixtureInit ( fixture ) }, function 
       t.is ( parent.html ().trim (), html );
       t.is ( $('.anchor').length, 0 );
       t.is ( $('.parent p').length, 1 );
+
+    });
+
+    it ( 'replaces node with a text', function ( t ) {
+
+      $('.parent .anchor').replaceWith('text');
+
+      t.is($('.parent').html().trim(), 'text');
 
     });
 
