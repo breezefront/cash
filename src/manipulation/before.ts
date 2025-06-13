@@ -1,6 +1,6 @@
 
 // @require core/cash.ts
-// @require ./helpers/insert_selectors.ts
+// @require ./helpers/insert_content.ts
 
 interface Cash {
   before ( ...selectors: Selector[] ): this;
@@ -8,6 +8,6 @@ interface Cash {
 
 fn.before = function ( this: Cash ) {
 
-  return insertSelectors ( arguments, this, false, true );
+  return insertContent ( arguments, this, false, true );
 
 };
